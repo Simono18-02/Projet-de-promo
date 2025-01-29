@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte Interactive de l'École</title>
+    
+    <!-- React et ReactDOM -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel pour JSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        .container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Plan Interactif de l'École</h1>
+        <div id="root"></div>
+    </div>
+
+    <script type="text/babel">
+        const SchoolMap = () => {
+            const handleHover = (e) => {
+                const element = e.currentTarget;
+                if (!element.dataset.originalFill) {
+                    element.dataset.originalFill = element.style.fill || window.getComputedStyle(element).fill;
+                }
+                element.style.fill = '#90EE90';
+                element.style.transform = 'scale(1.05)';
+            };
+
+            const handleHoverExit = (e) => {
+                const element = e.currentTarget;
+                element.style.fill = element.dataset.originalFill;
+                element.style.transform = 'scale(1)';
+            };
+
+            const commonStyle = {
+                transition: 'all 0.3s ease',
+                cursor: 'pointer',
+                transformOrigin: 'center',
+                stroke: '#000000',
+                strokeMiterlimit: 10
+            };
+
+            return (
+                <div className="w-full max-w-6xl mx-auto">
+                    <svg viewBox="0 0 1366 768" className="w-full h-auto">
+                        {/* Rectangles jaunes */}
+                        <rect x="655.5" y="258.5" style={{...commonStyle, fill:"#FBE184"}} width="49" height="86" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="704.5" y="258.5" style={{...commonStyle, fill:"#FAE08A"}} width="59" height="50" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="763.5" y="258.5" style={{...commonStyle, fill:"#FAE08A"}} width="27" height="24" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        
+                        {/* Rectangles blancs */}
+                        <rect x="642.5" y="368.5" style={{...commonStyle, fill:"#FFFFFF"}} width="86" height="43" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <circle cx="166" cy="167" r="77.5" style={{...commonStyle, fill:"#FFFFFF"}} onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="307.5" y="23.5" style={{...commonStyle, fill:"#FFFFFF"}} width="211" height="117" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        
+                        {/* Rectangles gris */}
+                        <rect x="446.5" y="260.5" style={{...commonStyle, fill:"#CDCDCD"}} width="71" height="43" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="517.5" y="260.5" style={{...commonStyle, fill:"#CDCDCD"}} width="105" height="43" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        
+                        {/* Rectangles gris foncé */}
+                        <rect x="584.5" y="384.5" style={{...commonStyle, fill:"#CBCBCB"}} width="38" height="29" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="584.5" y="351.5" style={{...commonStyle, fill:"#CBCBCB"}} width="38" height="33" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="584.5" y="330.5" style={{...commonStyle, fill:"#CBCBCB"}} width="38" height="21" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="584.5" y="303.5" style={{...commonStyle, fill:"#CBCBCB"}} width="38" height="27" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+
+                        {/* Polygones jaunes */}
+                        <polygon style={{...commonStyle, fill:"#FBE184"}} points="790.166,258.5 800.265,258.5 800.265,283.5 835.617,283.5 835.617,368 704.5,368 704.5,308.5 763.271,308.5 763.271,282.5 790.166,282.5" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <polygon style={{...commonStyle, fill:"#FBE184"}} points="924.979,335.298 887.957,335.298 888.979,258.5 941.064,258.5 941.064,270.984 941.064,274.532 924.979,274.021" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <polygon style={{...commonStyle, fill:"#FBE184"}} points="835.617,258.5 888.979,258.5 888.205,316.66 851.702,316.66 851.447,294.191 835.617,293.681" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <polygon style={{...commonStyle, fill:"#FBE184"}} points="924.979,303.638 953.319,303.638 953.319,258.5 941.064,258.5 941.064,274.532 924.979,274.021" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <polygon style={{...commonStyle, fill:"#FBE184"}} points="835.617,368 835.617,293.681 851.447,294.191 851.702,316.66 888.205,316.66 887.957,335.298 979.362,335.298 979.362,316.66 1015.106,316.66 1015.106,366.957" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        
+                        {/* Rectangles blancs supplémentaires */}
+                        <rect x="977.574" y="258.5" style={{...commonStyle, fill:"#FFFFFF"}} width="111.574" height="58.16" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="953.319" y="258.5" style={{...commonStyle, fill:"#FFFFFF"}} width="24.255" height="45.138" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="924.979" y="303.638" style={{...commonStyle, fill:"#FFFFFF"}} width="29.617" height="31.66" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="954.596" y="303.638" style={{...commonStyle, fill:"#FFFFFF"}} width="24.766" height="31.66" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="1015.106" y="327.638" style={{...commonStyle, fill:"#FFFFFF"}} width="74.043" height="39.319" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        
+                        {/* Polylines et polygones blancs */}
+                        <polyline style={{...commonStyle, fill:"#FFFFFF"}} points="728.5,369.513 728.5,420.5 748.161,420.5 748.161,411.675 765.149,411.675 765.149,368 728.5,368" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <polygon style={{...commonStyle, fill:"#FFFFFF"}} points="801.404,368.5 908.894,368 908.894,420.5 851.447,420.5 850.936,411.5 801.404,411.5" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="800.265" y="258.5" style={{...commonStyle, fill:"#FFFFFF"}} width="35.352" height="24.968" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        <rect x="765.149" y="368" style={{...commonStyle, fill:"#FFFFFF"}} width="36.255" height="43.5" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        
+                        {/* Rectangle jaune horizontal */}
+                        <rect x="1015.106" y="316.66" style={{...commonStyle, fill:"#FBE184"}} width="74.043" height="10.979" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+                        
+                        {/* Grand polygone jaune */}
+                        <polygon style={{...commonStyle, fill:"#FBE184"}} points="851.447,420.5 850.362,431.596 925.362,431.596 925.362,409.383 933.596,400.957 987.979,400.957 987.979,381.298 1012.745,377.468 1012.745,366.957 908.894,368 908.894,420.5" onMouseEnter={handleHover} onMouseLeave={handleHoverExit} />
+
+                        {/* Chemins et lignes non-interactifs */}
+                        <path style={{fill:"none", stroke:"#000000"}} d="M113.426,384L307.5,225.128c0,0,17-15.628,37-22.628s34-10.106,68.5-10.053s721.702-0.001,721.702-0.001S1180.5,197.5,1195.5,208.5s37,28,47,40s79,101,79,101" />
+                        <path style={{fill:"none", stroke:"#000000"}} d="M176.5,420.5l187-155c0,0,21.894-23,38.947-21s726.128,0,726.128,0s8.926-5,23.926,9s136.415,167,136.415,167" />
+                        <line x1="1089.149" y1="345.553" x2="1109.511" y2="345.553" style={{stroke:"#000000"}} />
+                        <line x1="1109.511" y1="345.553" x2="1109.511" y2="258.5" style={{stroke:"#000000"}} />
+                        <line x1="925.362" y1="419.34" x2="1091.638" y2="419.34" style={{stroke:"#000000"}} />
+                        
+                        {/* Indication niveau 2 */}
+                        <line x1="999.723" y1="357.298" x2="1052.128" y2="424.447" style={{stroke:"#E30613"}} />
+                        <text transform="matrix(1.7346 0 0 1 937.4365 437.623)" style={{fill:"#E30613", fontFamily:"sans-serif", fontSize:"12px"}}>
+                            ACCES AU NIVEAU 2
+                        </text>
+                    </svg>
+                </div>
+            );
+        };
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SchoolMap />);
+    </script>
+</body>
+</html>
