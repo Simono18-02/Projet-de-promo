@@ -1,6 +1,6 @@
 # 🌱 Projet Capteurs Environnementaux ENISE
 
-![Logo ENISE](https://infocentre.enise.fr/wiki/lib/exe/fetch.php/communication:2024-logo-enise-rouge.png) 
+![logo-enise](https://github.com/user-attachments/assets/8e0d6d78-b221-42c3-b92e-03c26f53f5b2)
 
 ## 📋 À propos
 
