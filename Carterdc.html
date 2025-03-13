@@ -249,7 +249,34 @@ const fetchLocalData = (url) => {
         });
 };
             
-        
+            // Initialiser les graphiques
+            const initializeCharts = () => {
+                if (charts.co2 || charts.tvoc) {
+                    return; // Les graphiques existent déjà
+                }
+                
+                const co2Ctx = document.getElementById('co2Chart');
+                const tvocCtx = document.getElementById('tvocChart');
+                
+                if (!co2Ctx || !tvocCtx) {
+                    return;
+                }
+                
+                // Générer des données d'exemple pour les graphiques
+                const labels = Array.from({length: 10}, (_, i) => {
+                    const date = new Date();
+                    date.setMinutes(date.getMinutes() - (10 - i));
+                    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                });
+                
+                const co2Values = [sensorData.co2];
+                const tvocValues = [sensorData.tvoc];
+                
+                // Générer des valeurs aléatoires pour l'historique
+                for (let i = 0; i < 9; i++) {
+                    co2Values.unshift(sensorData.co2 + Math.floor(Math.random() * 200 - 100));
+                    tvocValues.unshift(sensorData.tvoc + Math.floor(Math.random() * 50 - 25));
+                }
                 
                 const newCharts = {};
                 
@@ -546,7 +573,12 @@ const fetchLocalData = (url) => {
                                             </div>
                                         </div>
                                         
-                                        
+                                        <div className="chart-container">
+                                            <canvas id="co2Chart"></canvas>
+                                        </div>
+                                        <div className="chart-container">
+                                            <canvas id="tvocChart"></canvas>
+                                        </div>
                                         
                                         <div className="text-sm text-gray-600 text-center">
                                             Dernière mise à jour: {sensorData.timestamp}
