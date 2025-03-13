@@ -5,30 +5,153 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portail Étudiant - Accueil</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .hero-banner {
+            background-color: #004080;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .hero-banner h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        
+        .hero-banner p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .hero-button {
+            display: inline-block;
+            background-color: white;
+            color: #004080;
+            padding: 10px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .hero-button:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.05);
+        }
+        
+        .feature-section {
+            margin: 40px auto;
+            width: 80%;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .feature-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #004080;
+        }
+        
+        .feature-description {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        footer {
+            background-color: #004080;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+        }
+    </style>
 </head>
 <body>
 
     <header>
-        <h1>Portail Étudiant</h1>
-        <p>Bienvenue sur le site des étudiants de notre école.</p>
+        <h1>Portail Étudiant ENISE</h1>
+        <p>Bienvenue sur le site des étudiants de notre école d'ingénieurs.</p>
     </header>
 
     <main>
+        <div class="hero-banner">
+            <h2>🌱 Projet Capteurs Environnementaux</h2>
+            <p>Découvrez en temps réel la qualité de l'air dans les différentes salles de l'ENISE grâce à notre réseau de capteurs intelligents.</p>
+            <a href="Carterdc.html" class="hero-button">Voir la carte interactive</a>
+        </div>
+        
         <section class="intro">
             <h2>À propos du projet</h2>
-            <p>Ce site a pour objectif de fournir aux étudiants de l'enise une source d'information sur le campus.</p>
+            <p>Ce site a pour objectif de fournir aux étudiants de l'ENISE une source d'information sur le campus et d'améliorer l'expérience étudiante.</p>
+            <p>Notre projet de capteurs environnementaux permet de surveiller en temps réel les paramètres environnementaux dans les salles de classe et espaces communs, contribuant à créer un environnement d'apprentissage plus sain et éco-responsable.</p>
+        </section>
+
+        <section class="feature-section">
+            <h2 style="text-align: center; margin-bottom: 20px;">Nos Fonctionnalités</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🌡️</div>
+                    <div class="feature-title">Surveillance en temps réel</div>
+                    <div class="feature-description">Mesurez la qualité de l'air dans chaque salle avec des mises à jour constantes.</div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-title">Tableaux de bord</div>
+                    <div class="feature-description">Visualisez les données avec des graphiques intuitifs et des indicateurs clairs.</div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <div class="feature-title">Système d'alertes</div>
+                    <div class="feature-description">Recevez des notifications lorsque la qualité de l'air se dégrade dans une salle.</div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🗺️</div>
+                    <div class="feature-title">Carte interactive</div>
+                    <div class="feature-description">Naviguez facilement dans l'école avec notre plan interactif.</div>
+                </div>
+            </div>
         </section>
 
         <section class="links">
             <div class="link-box">
-                <h3>📊 Capteur environnementaux</h3>
+                <h3>📊 Capteurs environnementaux</h3>
                 <p>Consultez les relevés des capteurs environnementaux à chaque étage.</p>
-                <a href="Carterdc.html">Accéder</a>
+                <a href="air-quality.html">Accéder</a>
             </div>
 
             <div class="link-box">
-                <h3>📰 les dernière infos</h3>
-                <p>Consultez le dernier nuléros de l'enise flash ainsi que les événements à venir.</p>
+                <h3>📰 Les dernières infos</h3>
+                <p>Consultez le dernier numéro de l'ENISE flash ainsi que les événements à venir.</p>
                 <a href="https://sites.google.com/view/eniseflash/accueil?authuser=0">Accéder</a>
             </div>
 
@@ -40,7 +163,9 @@
         </section>
     </main>
 
-
+    <footer>
+        <p>© 2025 ENISE - Projet étudiant</p>
+    </footer>
 
 </body>
 </html>
