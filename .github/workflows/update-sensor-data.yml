@@ -2,7 +2,7 @@ name: Update Sensor Data
 
 on:
   schedule:
-    - cron: '*/10 * * * *'  # Exécution toutes les 10 minutes
+    - cron: '*/ 1* * * *'  # Exécution toutes les 10 minutes
   workflow_dispatch:  # Permet de déclencher manuellement
 
 jobs:
