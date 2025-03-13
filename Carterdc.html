@@ -165,6 +165,8 @@
             const [selectedRoom, setSelectedRoom] = React.useState(null);
             const [sensorData, setSensorData] = React.useState(null);
             const [sensorStatus, setSensorStatus] = React.useState("loading");
+		  // Ajout d'un interval pour l'actualisation
+    	    const [refreshInterval, setRefreshInterval] = React.useState(null);
             
             // Définition des salles et leurs capteurs associés
             const rooms = {
