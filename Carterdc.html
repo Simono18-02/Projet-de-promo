@@ -166,10 +166,11 @@
 
    <script type="text/babel">
         const SchoolMap = () => {
-            const [selectedRoom, setSelectedRoom] = React.useState(null);
-            const [sensorData, setSensorData] = React.useState(null);
-            const [sensorStatus, setSensorStatus] = React.useState("loading");
-            const [charts, setCharts] = React.useState({co2: null, tvoc: null});
+	    const [selectedRoom, setSelectedRoom] = React.useState(null);
+	    const [sensorData, setSensorData] = React.useState(null);
+	    const [sensorStatus, setSensorStatus] = React.useState("loading");
+	    const [charts, setCharts] = React.useState({co2: null, tvoc: null});
+	    // Ajout d'un interval pour l'actualisation
 	    const [refreshInterval, setRefreshInterval] = React.useState(null);
             
             // Définition des salles et leurs capteurs associés
