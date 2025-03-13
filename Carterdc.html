@@ -17,51 +17,43 @@
                 "labo-info": { id: "labo-info", name: "Laboratoire Informatique", sensorId: "capteur1", color: "#CDCDCD" }
             };
             
-            // Fonction pour récupérer les données d'un capteur
-            const fetchSensorData = (sensorId) => {
-                setSensorStatus("loading");
-                
-                // Dans un cas réel, vous utiliseriez l'URL de votre API
-                let url;
-                if (sensorId === "capteur1") {
-                    // Utiliser les données du capteur local pour capteur1
-                    url = "/readings";
-                } else {
-                    // Utiliser les données GitHub pour capteur2
-                    url = "https://api.github.com/repos/Simono18-02/Projet-de-promo/contents/data.json";
-                }
-                
-                fetch(url)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`Erreur HTTP: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (sensorId === "capteur2") {
-                            // Pour les données GitHub, décoder le contenu Base64
-                            const content = atob(data.content);
-                            data = JSON.parse(content).reading;
-                        }
-                        
-                        setSensorData({
-                            co2: data.co2,
-                            tvoc: data.tvoc,
-                            timestamp: new Date().toLocaleString()
-                        });
-                        setSensorStatus("online");
-                        
-                        // Simuler l'historique (dans un cas réel, vous récupéreriez l'historique)
-                        setTimeout(() => {
-                            initializeCharts();
-                        }, 100);
-                    })
-                    .catch(error => {
-                        console.error("Erreur de récupération des données:", error);
-                        setSensorStatus("offline");
-                    });
-            };
+// Fonction pour récupérer les données d'un capteur
+const fetchSensorData = (sensorId) => {
+    setSensorStatus("loading");
+    
+    // Utiliser les données GitHub pour tous les capteurs quand on est sur GitHub Pages
+    let url = "https://api.github.com/repos/Simono18-02/Projet-de-promo/contents/data.json";
+    
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Pour les données GitHub, décoder le contenu Base64
+            const content = atob(data.content);
+            const jsonData = JSON.parse(content);
+            const sensorData = jsonData.reading;
+            
+            setSensorData({
+                co2: sensorData.co2,
+                tvoc: sensorData.tvoc,
+                timestamp: new Date().toLocaleString()
+            });
+            setSensorStatus("online");
+            
+            // Simuler l'historique
+            setTimeout(() => {
+                initializeCharts();
+            }, 100);
+        })
+        .catch(error => {
+            console.error("Erreur de récupération des données:", error);
+            setSensorStatus("offline");
+        });
+};
             
             // Initialiser les graphiques
             const initializeCharts = () => {
