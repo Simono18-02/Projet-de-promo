@@ -1,0 +1,36 @@
+name: Update Sensor Data
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # Exécution toutes les 10 minutes
+  workflow_dispatch:  # Permet de déclencher manuellement
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+          
+      - name: Fetch sensor data
+        run: |
+          python .github/scripts/fetch_sensor_data.py
+        env:
+          ESP32_IP: ${{ secrets.ESP32_IP }}
+          
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name 'GitHub Actions Bot'
+          git config --global user.email 'actions@github.com'
+          git add data.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update sensor data" && git push)
