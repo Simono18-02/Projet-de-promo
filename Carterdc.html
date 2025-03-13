@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-	<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carte Interactive de l'École</title>
     
@@ -11,8 +11,6 @@
     
     <!-- Babel pour JSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    
-   
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,21 +28,21 @@
             font-weight: bold;
             color: #333;
         }
-	.room-info {
-	    position: fixed;
-	    top: 50%;
-	    left: 50%;
-	    transform: translate(-50%, -50%);
-	    background-color: white;
-	    padding: 1.5rem;
-	    border-radius: 8px;
-	    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	    z-index: 1000;
-	    max-width: 90%;
-	    width: 400px;
-	    max-height: 80vh; /* Limite la hauteur à 80% de la hauteur de la fenêtre */
-	    overflow-y: auto; /* Ajoute une barre de défilement vertical si le contenu dépasse */
-	}
+        .room-info {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            max-width: 90%;
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
         .room-info h2 {
             font-size: 1.5rem;
             margin-bottom: 1rem;
@@ -83,7 +81,6 @@
             font-weight: bold;
             color: #004080;
         }
-       
         .navigation {
             display: flex;
             justify-content: center;
@@ -158,15 +155,13 @@
         <p class="text-center mb-4">Cliquez sur une salle pour voir les données des capteurs environnementaux</p>
         <div id="root"></div>
     </div>
-</body>
 
-   <script type="text/babel">
+    <script type="text/babel">
         const SchoolMap = () => {
             const [selectedRoom, setSelectedRoom] = React.useState(null);
             const [sensorData, setSensorData] = React.useState(null);
             const [sensorStatus, setSensorStatus] = React.useState("loading");
-		  // Ajout d'un interval pour l'actualisation
-    	    const [refreshInterval, setRefreshInterval] = React.useState(null);
+            const refreshIntervalRef = React.useRef(null);
             
             // Définition des salles et leurs capteurs associés
             const rooms = {
@@ -177,139 +172,126 @@
                 "labo-info": { id: "labo-info", name: "Laboratoire Informatique", sensorId: "capteur1", color: "#CDCDCD" }
             };
             
-// Fonction pour récupérer les données d'un capteur
-// Fonction pour récupérer les données d'un capteur
-const fetchSensorData = (sensorId) => {
-    setSensorStatus("loading");
-    
-    // Détecter si nous sommes sur GitHub Pages ou en local
-    const isGitHubPages = window.location.hostname.includes('github.io');
-    
-    let url;
-    if (isGitHubPages || sensorId === "capteur2") {
-        // Sur GitHub Pages, toujours utiliser l'API GitHub
-        url = "https://api.github.com/repos/Simono18-02/Projet-de-promo/contents/data.json";
-        fetchGitHubData(url);
-    } else if (sensorId === "capteur1") {
-        // En local, on peut essayer d'accéder à l'ESP32
-        url = "/readings";
-        fetchLocalData(url);
-    }
-};
-
-const fetchGitHubData = (url) => {
-    fetch(url)
-        .then(response => {
-            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            const content = atob(data.content);
-            const jsonData = JSON.parse(content);
-            const sensorData = jsonData.reading;
+            // Fonction pour récupérer les données d'un capteur
+            const fetchSensorData = React.useCallback((sensorId) => {
+                setSensorStatus("loading");
+                
+                // Détecter si nous sommes sur GitHub Pages ou en local
+                const isGitHubPages = window.location.hostname.includes('github.io');
+                
+                if (isGitHubPages || sensorId === "capteur2") {
+                    // Sur GitHub Pages ou pour capteur2, utiliser l'API GitHub
+                    const url = "https://api.github.com/repos/Simono18-02/Projet-de-promo/contents/data.json";
+                    fetchGitHubData(url);
+                } else if (sensorId === "capteur1") {
+                    // En local pour capteur1, essayer d'accéder à l'ESP32
+                    const url = "/readings";
+                    fetchLocalData(url);
+                }
+            }, []);
             
-            setSensorData({
-                co2: sensorData.co2,
-                tvoc: sensorData.tvoc,
-                timestamp: new Date().toLocaleString()
-            });
-            setSensorStatus("online");
-        })
-        .catch(error => {
-            console.error("Erreur GitHub:", error);
-            setSensorStatus("offline");
-        });
-};
-
-const fetchLocalData = (url) => {
-    fetch(url)
-        .then(response => {
-            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            setSensorData({
-                co2: data.co2,
-                tvoc: data.tvoc,
-                timestamp: new Date().toLocaleString()
-            });
-            setSensorStatus("online");
-        })
-        .catch(error => {
-            console.error("Erreur locale:", error);
-            // Si l'accès local échoue, essayer via GitHub
-            fetchGitHubData("https://api.github.com/repos/Simono18-02/Projet-de-promo/contents/data.json");
-        });
-};
+            const fetchGitHubData = (url) => {
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        const content = atob(data.content);
+                        const jsonData = JSON.parse(content);
+                        const sensorData = jsonData.reading;
+                        
+                        setSensorData({
+                            co2: sensorData.co2,
+                            tvoc: sensorData.tvoc,
+                            timestamp: new Date().toLocaleString()
+                        });
+                        setSensorStatus("online");
+                    })
+                    .catch(error => {
+                        console.error("Erreur GitHub:", error);
+                        setSensorStatus("offline");
+                    });
+            };
             
-
+            const fetchLocalData = (url) => {
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        setSensorData({
+                            co2: data.co2,
+                            tvoc: data.tvoc,
+                            timestamp: new Date().toLocaleString()
+                        });
+                        setSensorStatus("online");
+                    })
+                    .catch(error => {
+                        console.error("Erreur locale:", error);
+                        // Si l'accès local échoue, essayer via GitHub
+                        fetchGitHubData("https://api.github.com/repos/Simono18-02/Projet-de-promo/contents/data.json");
+                    });
+            };
             
-			
-			
-
-			
-			// Effet pour gérer l'actualisation automatique quand la fenêtre pop-up est ouverte
-			React.useEffect(() => {
-				if (selectedRoom) {
-					// Actualiser immédiatement
-					fetchSensorData(selectedRoom.sensorId);
-					
-					// Configurer un intervalle pour l'actualisation automatique (toutes les 30 secondes)
-					const interval = setInterval(() => {
-						updateData();
-					}, 30000); // 30 secondes
-					
-					setRefreshInterval(interval);
-					
-					// Nettoyer l'intervalle quand le composant est démonté ou quand selectedRoom change
-					return () => {
-						clearInterval(interval);
-					};
-				}
-			}, [selectedRoom]);
-	
-	
+            // Effet pour gérer l'actualisation automatique quand la fenêtre pop-up est ouverte
+            React.useEffect(() => {
+                if (selectedRoom) {
+                    // Actualiser immédiatement
+                    fetchSensorData(selectedRoom.sensorId);
+                    
+                    // Configurer un intervalle pour l'actualisation automatique (toutes les 30 secondes)
+                    refreshIntervalRef.current = setInterval(() => {
+                        fetchSensorData(selectedRoom.sensorId);
+                    }, 30000); // 30 secondes
+                    
+                    // Nettoyer l'intervalle quand le composant est démonté ou quand selectedRoom change
+                    return () => {
+                        if (refreshIntervalRef.current) {
+                            clearInterval(refreshIntervalRef.current);
+                            refreshIntervalRef.current = null;
+                        }
+                    };
+                }
+            }, [selectedRoom, fetchSensorData]);
+            
             // Gérer le survol d'une salle
-			// Gérer le survol d'une salle
-			const handleHover = (e) => {
-				const element = e.currentTarget;
-				if (!element.dataset.originalFill) {
-					element.dataset.originalFill = element.style.fill || window.getComputedStyle(element).fill;
-				}
-				element.style.fill = '#90EE90';
-				element.style.transform = 'scale(1.05)';
-			};
-
-			const handleHoverExit = (e) => {
-				const element = e.currentTarget;
-				element.style.fill = element.dataset.originalFill;
-				element.style.transform = 'scale(1)';
-			};
+            const handleHover = (e) => {
+                const element = e.currentTarget;
+                if (!element.dataset.originalFill) {
+                    element.dataset.originalFill = element.style.fill || window.getComputedStyle(element).fill;
+                }
+                element.style.fill = '#90EE90';
+                element.style.transform = 'scale(1.05)';
+            };
+            
+            const handleHoverExit = (e) => {
+                const element = e.currentTarget;
+                element.style.fill = element.dataset.originalFill;
+                element.style.transform = 'scale(1)';
+            };
             
             // Gérer le clic sur une salle
-			const handleRoomClick = (roomId) => {
-				const room = rooms[roomId];
-				if (room) {
-					setSelectedRoom(room);
-					// fetchSensorData est maintenant appelé dans l'useEffect
-				}
-			};
+            const handleRoomClick = (roomId) => {
+                const room = rooms[roomId];
+                if (room) {
+                    setSelectedRoom(room);
+                }
+            };
             
             // Fermer la fenêtre d'information
             const closeRoomInfo = () => {
-				// Nettoyer l'intervalle d'actualisation
-				if (refreshInterval) {
-					clearInterval(refreshInterval);
-					setRefreshInterval(null);
-				}
-				
-				setSelectedRoom(null);
-				setSensorData(null);
-				setSensorStatus("loading");
-				
-				
-			};
-
+                if (refreshIntervalRef.current) {
+                    clearInterval(refreshIntervalRef.current);
+                    refreshIntervalRef.current = null;
+                }
+                
+                setSelectedRoom(null);
+                setSensorData(null);
+                setSensorStatus("loading");
+            };
+            
             const commonStyle = {
                 transition: 'all 0.3s ease',
                 cursor: 'pointer',
@@ -317,7 +299,7 @@ const fetchLocalData = (url) => {
                 stroke: '#000000',
                 strokeMiterlimit: 10
             };
-
+            
             return (
                 <>
                     <div className="w-full max-w-6xl mx-auto">
@@ -446,7 +428,13 @@ const fetchLocalData = (url) => {
                                 <span className="close-btn" onClick={closeRoomInfo}>&times;</span>
                                 <h2>{selectedRoom.name}</h2>
                                 
-                                <div className={`sensor-status ${sensorStatus === "online" ? "status-online" : sensorStatus === "offline" ? "status-offline" : ""}`}>
+                                <div className={`sensor-status ${
+                                    sensorStatus === "online" 
+                                        ? "status-online" 
+                                        : sensorStatus === "offline" 
+                                            ? "status-offline" 
+                                            : ""
+                                }`}>
                                     {sensorStatus === "loading" && "Chargement des données..."}
                                     {sensorStatus === "online" && "Capteur en ligne"}
                                     {sensorStatus === "offline" && "Capteur hors ligne"}
@@ -464,9 +452,6 @@ const fetchLocalData = (url) => {
                                                 <div className="data-value">{sensorData.tvoc} ppb</div>
                                             </div>
                                         </div>
-                                        
-                                       
-                                
                                         
                                         <div className="text-sm text-gray-600 text-center">
                                             Dernière mise à jour: {sensorData.timestamp}
@@ -487,4 +472,6 @@ const fetchLocalData = (url) => {
         // Render the app
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<SchoolMap />);
-    </script> 
+    </script>
+</body>
+</html>
