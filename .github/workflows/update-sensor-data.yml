@@ -1,8 +1,7 @@
 name: Update Sensor Data
-
 on:
   schedule:
-    - cron: '*/ 1* * * *'  # Exécution toutes les 10 minutes
+    - cron: '*/10 * * * *'  # Exécution toutes les 10 minutes (syntaxe corrigée)
   workflow_dispatch:  # Permet de déclencher manuellement
 
 jobs:
@@ -10,12 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3  # Version plus récente de checkout
+        with:
+          fetch-depth: 0  # Pour éviter les problèmes d'historique Git partiel
         
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4  # Version plus récente
         with:
           python-version: '3.9'
+          cache: 'pip'  # Cache des dépendances pour accélérer le workflow
           
       - name: Install dependencies
         run: |
@@ -33,4 +35,4 @@ jobs:
           git config --global user.name 'GitHub Actions Bot'
           git config --global user.email 'actions@github.com'
           git add data.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update sensor data" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update sensor data [skip ci]" && git push)
