@@ -1,7 +1,168 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <script type="text/babel">
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte Interactive de l'École</title>
+    
+    <!-- React et ReactDOM -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel pour JSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    
+    <!-- Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        .container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .room-info {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            max-width: 90%;
+            width: 400px;
+        }
+        .room-info h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+            text-align: center;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        .data-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .data-box {
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            width: 48%;
+            text-align: center;
+        }
+        .data-box h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            color: #333;
+        }
+        .data-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #004080;
+        }
+        .chart-container {
+            height: 200px;
+            margin-bottom: 1rem;
+        }
+        .navigation {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        .nav-button {
+            background-color: #004080;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .sensor-status {
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: bold;
+        }
+        .status-online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .navbar {
+            background-color: #004080;
+            color: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .navbar-menu {
+            display: flex;
+        }
+        .navbar-item {
+            margin-left: 1rem;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navbar">
+        <div class="navbar-title">ENISE - Plan Interactif</div>
+        <div class="navbar-menu">
+            <a href="index.html" class="navbar-item">Accueil</a>
+            <a href="air-quality.html" class="navbar-item">Qualité d'Air</a>
+        </div>
+    </div>
+    <div class="container">
+        <h1 class="title">Plan Interactif de l'École</h1>
+        <p class="text-center mb-4">Cliquez sur une salle pour voir les données des capteurs environnementaux</p>
+        <div id="root"></div>
+    </div>
+</body>
+
+   <script type="text/babel">
         const SchoolMap = () => {
             const [selectedRoom, setSelectedRoom] = React.useState(null);
             const [sensorData, setSensorData] = React.useState(null);
@@ -154,46 +315,104 @@ const fetchLocalData = (url) => {
                 setCharts(newCharts);
             };
             
+			
+			
+			
+			// Fonction pour mettre à jour les données et les graphiques
+			const updateData = () => {
+				if (selectedRoom) {
+					fetchSensorData(selectedRoom.sensorId);
+					
+					// Mettre à jour les graphiques si ils existent
+					if (charts.co2 && charts.tvoc && sensorData) {
+						const newTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+						
+						// Ajouter les nouvelles données aux graphiques
+						charts.co2.data.labels.push(newTime);
+						charts.co2.data.labels.shift();
+						charts.co2.data.datasets[0].data.push(sensorData.co2);
+						charts.co2.data.datasets[0].data.shift();
+						
+						charts.tvoc.data.labels.push(newTime);
+						charts.tvoc.data.labels.shift();
+						charts.tvoc.data.datasets[0].data.push(sensorData.tvoc);
+						charts.tvoc.data.datasets[0].data.shift();
+						
+						// Mise à jour des graphiques
+						charts.co2.update();
+						charts.tvoc.update();
+					}
+				}
+			};
+			
+			// Effet pour gérer l'actualisation automatique quand la fenêtre pop-up est ouverte
+			React.useEffect(() => {
+				if (selectedRoom) {
+					// Actualiser immédiatement
+					fetchSensorData(selectedRoom.sensorId);
+					
+					// Configurer un intervalle pour l'actualisation automatique (toutes les 30 secondes)
+					const interval = setInterval(() => {
+						updateData();
+					}, 30000); // 30 secondes
+					
+					setRefreshInterval(interval);
+					
+					// Nettoyer l'intervalle quand le composant est démonté ou quand selectedRoom change
+					return () => {
+						clearInterval(interval);
+					};
+				}
+			}, [selectedRoom]);
+	
+	
             // Gérer le survol d'une salle
-            const handleHover = (e) => {
-                const element = e.currentTarget;
-                if (!element.dataset.originalFill) {
-                    element.dataset.originalFill = element.style.fill || window.getComputedStyle(element).fill;
-                }
-                element.style.fill = '#90EE90';
-                element.style.transform = 'scale(1.05)';
-            };
+			// Gérer le survol d'une salle
+			const handleHover = (e) => {
+				const element = e.currentTarget;
+				if (!element.dataset.originalFill) {
+					element.dataset.originalFill = element.style.fill || window.getComputedStyle(element).fill;
+				}
+				element.style.fill = '#90EE90';
+				element.style.transform = 'scale(1.05)';
+			};
 
-            const handleHoverExit = (e) => {
-                const element = e.currentTarget;
-                element.style.fill = element.dataset.originalFill;
-                element.style.transform = 'scale(1)';
-            };
+			const handleHoverExit = (e) => {
+				const element = e.currentTarget;
+				element.style.fill = element.dataset.originalFill;
+				element.style.transform = 'scale(1)';
+			};
             
             // Gérer le clic sur une salle
-            const handleRoomClick = (roomId) => {
-                const room = rooms[roomId];
-                if (room) {
-                    setSelectedRoom(room);
-                    fetchSensorData(room.sensorId);
-                }
-            };
+			const handleRoomClick = (roomId) => {
+				const room = rooms[roomId];
+				if (room) {
+					setSelectedRoom(room);
+					// fetchSensorData est maintenant appelé dans l'useEffect
+				}
+			};
             
             // Fermer la fenêtre d'information
             const closeRoomInfo = () => {
-                setSelectedRoom(null);
-                setSensorData(null);
-                setSensorStatus("loading");
-                
-                // Détruire les graphiques
-                if (charts.co2) {
-                    charts.co2.destroy();
-                }
-                if (charts.tvoc) {
-                    charts.tvoc.destroy();
-                }
-                setCharts({co2: null, tvoc: null});
-            };
+				// Nettoyer l'intervalle d'actualisation
+				if (refreshInterval) {
+					clearInterval(refreshInterval);
+					setRefreshInterval(null);
+				}
+				
+				setSelectedRoom(null);
+				setSensorData(null);
+				setSensorStatus("loading");
+				
+				// Détruire les graphiques
+				if (charts.co2) {
+					charts.co2.destroy();
+				}
+				if (charts.tvoc) {
+					charts.tvoc.destroy();
+				}
+				setCharts({co2: null, tvoc: null});
+			};
 
             const commonStyle = {
                 transition: 'all 0.3s ease',
@@ -376,165 +595,4 @@ const fetchLocalData = (url) => {
         // Render the app
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<SchoolMap />);
-    </script>
-</body>
-</html><meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carte Interactive de l'École</title>
-    
-    <!-- React et ReactDOM -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel pour JSX -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    
-    <!-- Chart.js pour les graphiques -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <style>
-        .container {
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .title {
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 2rem;
-            font-weight: bold;
-            color: #333;
-        }
-        .room-info {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            max-width: 90%;
-            width: 400px;
-        }
-        .room-info h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: #333;
-            text-align: center;
-        }
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-        }
-        .data-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-        .data-box {
-            background-color: #f0f0f0;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            width: 48%;
-            text-align: center;
-        }
-        .data-box h3 {
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
-            color: #333;
-        }
-        .data-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #004080;
-        }
-        .chart-container {
-            height: 200px;
-            margin-bottom: 1rem;
-        }
-        .navigation {
-            display: flex;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-        .nav-button {
-            background-color: #004080;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            text-decoration: none;
-            margin: 0 0.5rem;
-        }
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-        .sensor-status {
-            padding: 0.5rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-            text-align: center;
-            font-weight: bold;
-        }
-        .status-online {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .status-offline {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .navbar {
-            background-color: #004080;
-            color: white;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .navbar-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-        .navbar-menu {
-            display: flex;
-        }
-        .navbar-item {
-            margin-left: 1rem;
-            color: white;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="navbar-title">ENISE - Plan Interactif</div>
-        <div class="navbar-menu">
-            <a href="index.html" class="navbar-item">Accueil</a>
-            <a href="air-quality.html" class="navbar-item">Qualité d'Air</a>
-        </div>
-    </div>
-    <div class="container">
-        <h1 class="title">Plan Interactif de l'École</h1>
-        <p class="text-center mb-4">Cliquez sur une salle pour voir les données des capteurs environnementaux</p>
-        <div id="root"></div>
-    </div>
-
-    
+    </script> 
