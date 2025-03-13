@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Moniteur de Qualité d'Air - ENISE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; text-align: center; margin: 0px auto; padding: 15px; }
+    .container { width: 100%; max-width: 800px; margin: 0 auto; }
+    .chart-container { position: relative; height: 300px; width: 100%; margin: 20px 0; }
+    .data-box { background-color: #f0f0f0; border-radius: 10px; padding: 10px; margin: 10px; display: inline-block; width: 40%; }
+    .navigation { margin: 20px 0; }
+    .navigation a { 
+      display: inline-block; 
+      padding: 10px 20px; 
+      background-color: #004080; 
+      color: white; 
+      text-decoration: none; 
+      border-radius: 5px;
+      margin: 0 10px;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .status.online {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status.offline {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .room-selector {
+      margin: 20px 0;
+    }
+    .room-selector select {
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Moniteur de Qualité d'Air - ENISE</h2>
+    
+    <div class="navigation">
+      <a href="index.html">Retour à l'accueil</a>
+      <a href="Carterdc.html">Voir la carte</a>
+    </div>
+    
+    <div class="room-selector">
+      <label for="room">Sélectionnez une salle:</label>
+      <select id="room" onchange="changeRoom()">
+        <option value="local">Données locales</option>
+        <option value="github">Données GitHub</option>
+        <!-- D'autres salles peuvent être ajoutées ici -->
+      </select>
+    </div>
+    
+    <div id="statusBox" class="status">
+      Chargement des données...
+    </div>
+    
+    <div>
+      <div class="data-box">
+        <h3>CO2 équivalent</h3>
+        <p id="co2">--</p>
+      </div>
+      <div class="data-box">
+        <h3>COV Totaux</h3>
+        <p id="tvoc">--</p>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <canvas id="co2Chart"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="tvocChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // Configuration des graphiques
+    var co2Data = [];
+    var tvocData = [];
+    var labels = [];
+    var maxPoints = 50;
+    var dataSource = "local"; // Par défaut, utiliser les données locales
+    
+    // Créer les graphiques
+    var co2Chart = new Chart(document.getElementById('co2Chart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'CO2 (ppm)',
+          data: co2Data,
+          borderColor: 'rgba(255, 99, 132, 1)',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+    
+    var tvocChart = new Chart(document.getElementById('tvocChart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'TVOC (ppb)',
+          data: tvocData,
+          borderColor: 'rgba(54, 162, 235, 1)',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+    
+    // Changer la source de données
+    function changeRoom() {
+      var roomSelect = document.getElementById('room');
+      dataSource = roomSelect.value;
+      
+      // Réinitialiser les graphiques
+      co2Data = [];
+      tvocData = [];
+      labels = [];
+      co2Chart.update();
+      tvocChart.update();
+      
+      // Mettre à jour les données
+      getReadings();
+    }
+    
+    // Obtenir les données du serveur
+    function getReadings() {
+      if (dataSource === "local") {
+        getLocalData();
+      } else if (dataSource === "github") {
+        getGitHubData();
+      }
+    }
+    
+    // Obtenir les données depuis l'ESP32 local
+    function getLocalData() {
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            var data = JSON.parse(this.responseText);
+            updateDisplayWithData(data);
+            
+            // Mettre à jour le statut
+            var statusBox = document.getElementById("statusBox");
+            statusBox.className = "status online";
+            statusBox.innerHTML = "Connecté au capteur local";
+          } else {
+            // Erreur de connexion
+            var statusBox = document.getElementById("statusBox");
+            statusBox.className = "status offline";
+            statusBox.innerHTML = "Capteur local non disponible";
+          }
+        }
+      };
+      xhr.open("GET", "/readings", true);
+      xhr.timeout = 5000; // 5 secondes timeout
+      xhr.ontimeout = function() {
+        var statusBox = document.getElementById("statusBox");
+        statusBox.className = "status offline";
+        statusBox.innerHTML = "Capteur local non disponible (timeout)";
+      };
+      xhr.send();
+    }
+    
+    // Obtenir les données depuis GitHub
+    function getGitHubData() {
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            var response = JSON.parse(this.responseText);
+            
+            // Décoder le contenu en base64
+            var content = atob(response.content);
+            var data = JSON.parse(content);
+            
+            // Mettre à jour l'affichage avec les dernières données
+            if (data.reading) {
+              updateDisplayWithData(data.reading);
+              
+              // Mettre à jour le statut
+              var statusBox = document.getElementById("statusBox");
+              statusBox.className = "status online";
+              statusBox.innerHTML = "Données récupérées depuis GitHub";
+            }
+          } else {
+            // Erreur de connexion à GitHub
+            var statusBox = document.getElementById("statusBox");
+            statusBox.className = "status offline";
+            statusBox.innerHTML = "Données GitHub non disponibles";
+          }
+        }
+      };
+      
+      // Remplacer par l'URL de votre fichier JSON sur GitHub
+      var githubUrl = "https://api.github.com/repos/VOTRE_UTILISATEUR/VOTRE_REPO/contents/data.json";
+      xhr.open("GET", githubUrl, true);
+      xhr.send();
+    }
+    
+    // Mettre à jour l'affichage avec les données
+    function updateDisplayWithData(data) {
+      document.getElementById("co2").innerHTML = data.co2 + " ppm";
+      document.getElementById("tvoc").innerHTML = data.tvoc + " ppb";
+      
+      // Ajouter les données aux graphiques
+      var now = new Date().toLocaleTimeString();
+      labels.push(now);
+      co2Data.push(data.co2);
+      tvocData.push(data.tvoc);
+      
+      // Limiter le nombre de points
+      if (labels.length > maxPoints) {
+        labels.shift();
+        co2Data.shift();
+        tvocData.shift();
+      }
+      
+      // Mettre à jour les graphiques
+      co2Chart.update();
+      tvocChart.update();
+    }
+    
+    // Mettre à jour toutes les 5 secondes
+    setInterval(getReadings, 5000);
+    getReadings(); // Première lecture
+  </script>
+</body>
+</html>

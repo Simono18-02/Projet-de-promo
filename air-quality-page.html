@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qualité d'Air - ENISE</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        
+        header {
+            background-color: #004080;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .data-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+        }
+        
+        .data-card h2 {
+            margin-top: 0;
+            color: #004080;
+            font-size: 18px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .sensor-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+        
+        .sensor-card h3 {
+            margin-top: 0;
+            color: #004080;
+            font-size: 16px;
+        }
+        
+        .sensor-data {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        .data-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .data-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .data-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-online {
+            background-color: #28a745;
+        }
+        
+        .status-offline {
+            background-color: #dc3545;
+        }
+        
+        .status-text {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .room-selector {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .selector-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .room-button {
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .room-button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .room-button.active {
+            background-color: #004080;
+            color: white;
+        }
+        
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .nav-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #004080;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+        
+        .legend {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .legend h3 {
+            margin-top: 0;
+            color: #004080;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+        
+        .quality-good {
+            background-color: #28a745;
+        }
+        
+        .quality-moderate {
+            background-color: #ffc107;
+        }
+        
+        .quality-poor {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Qualité d'Air - ENISE</h1>
+        <p>Surveillance en temps réel des paramètres environnementaux</p>
+    </header>
+    
+    <div class="container">
+        <div class="nav-menu">
+            <a href="index.html" class="nav-link">Accueil</a>
+            <a href="Carterdc.html" class="nav-link">Carte Interactive</a>
+        </div>
+        
+        <div class="room-selector">
+            <h2>Sélectionnez une salle</h2>
+            <div class="selector-container">
+                <button class="room-button active" data-room="all">Tous les capteurs</button>
+                <button class="room-button" data-room="salle-101">Salle 101</button>
+                <button class="room-button" data-room="salle-102">Salle 102</button>
+                <button class="room-button" data-room="salle-103">Salle 103</button>
+                <button class="room-button" data-room="amphi-a">Amphi A</button>
+                <button class="room-button" data-room="labo-info">Laboratoire Informatique</button>
+            </div>
+        </div>
+        
+        <div class="dashboard">
+            <div class="data-card">
+                <h2>CO2 - Tendance sur 24h</h2>
+                <div class="chart-container">
+                    <canvas id="co2Chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="data-card">
+                <h2>TVOC - Tendance sur 24h</h2>
+                <div class="chart-container">
+                    <canvas id="tvocChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="data-card">
+            <h2>Qualité d'air en temps réel</h2>
+            <div class="sensor-grid">
+                <div class="sensor-card">
+                    <h3>Salle 101</h3>
+                    <div class="status">
+                        <span class="status-indicator status-online"></span>
+                        <span class="status-text">En ligne</span>
+                    </div>
+                    <div class="sensor-data">
+                        <div class="data-item">
+                            <div class="data-value">850</div>
+                            <div class="data-label">CO2 (ppm)</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">120</div>
+                            <div class="data-label">TVOC (ppb)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sensor-card">
+                    <h3>Salle 102</h3>
+                    <div class="status">
+                        <span class="status-indicator status-online"></span>
+                        <span class="status-text">En ligne</span>
+                    </div>
+                    <div class="sensor-data">
+                        <div class="data-item">
+                            <div class="data-value">780</div>
+                            <div class="data-label">CO2 (ppm)</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">105</div>
+                            <div class="data-label">TVOC (ppb)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sensor-card">
+                    <h3>Salle 103</h3>
+                    <div class="status">
+                        <span class="status-indicator status-online"></span>
+                        <span class="status-text">En ligne</span>
+                    </div>
+                    <div class="sensor-data">
+                        <div class="data-item">
+                            <div class="data-value">920</div>
+                            <div class="data-label">CO2 (ppm)</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">145</div>
+                            <div class="data-label">TVOC (ppb)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sensor-card">
+                    <h3>Amphi A</h3>
+                    <div class="status">
+                        <span class="status-indicator status-online"></span>
+                        <span class="status-text">En ligne</span>
+                    </div>
+                    <div class="sensor-data">
+                        <div class="data-item">
+                            <div class="data-value">1200</div>
+                            <div class="data-label">CO2 (ppm)</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">180</div>
+                            <div class="data-label">TVOC (ppb)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sensor-card">
+                    <h3>Laboratoire Informatique</h3>
+                    <div class="status">
+                        <span class="status-indicator status-offline"></span>
+                        <span class="status-text">Hors ligne</span>
+                    </div>
+                    <div class="sensor-data">
+                        <div class="data-item">
+                            <div class="data-value">--</div>
+                            <div class="data-label">CO2 (ppm)</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">--</div>
+                            <div class="data-label">TVOC (ppb)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <h3>Légende de qualité d'air</h3>
+            <div class="legend-item">
+                <div class="legend-color quality-good"></div>
+                <span>Bonne qualité (CO2 < 800 ppm, TVOC < 100 ppb)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color quality-moderate"></div>
+                <span>Qualité modérée (CO2 800-1000 ppm, TVOC 100-150 ppb)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color quality-poor"></div>
+                <span>Qualité dégradée (CO2 > 1000 ppm, TVOC > 150 ppb)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialisation des graphiques
+        document.addEventListener('DOMContentLoaded', function() {
+            // Données pour le graphique CO2
+            const co2Data = {
+                labels: Array.from({length: 24}, (_, i) => {
+                    const hour = new Date();
+                    hour.setHours(hour.getHours() - 23 + i);
+                    return hour.getHours() + 'h';
+                }),
+                datasets: [
+                    {
+                        label: 'Salle 101',
+                        data: generateRandomData(750, 900, 24),
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        fill: false
+                    },
+                    {
+                        label: 'Salle 102',
+                        data: generateRandomData(700, 850, 24),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        fill: false
+                    },
+                    {
+                        label: 'Salle 103',
+                        data: generateRandomData(800, 950, 24),
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                        fill: false
+                    },
+                    {
+                        label: 'Amphi A',
+                        data: generateRandomData(900, 1300, 24),
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        fill: false
+                    }
+                ]
+            };
+
+            // Données pour le graphique TVOC
+            const tvocData = {
+                labels: Array.from({length: 24}, (_, i) => {
+                    const hour = new Date();
+                    hour.setHours(hour.getHours() - 23 + i);
+                    return hour.getHours() + 'h';
+                }),
+                datasets: [
+                    {
+                        label: 'Salle 101',
+                        data: generateRandomData(100, 140, 24),
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        fill: false
+                    },
+                    {
+                        label: 'Salle 102',
+                        data: generateRandomData(90, 120, 24),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        fill: false
+                    },
+                    {
+                        label: 'Salle 103',
+                        data: generateRandomData(110, 160, 24),
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                        fill: false
+                    },
+                    {
+                        label: 'Amphi A',
+                        data: generateRandomData(140, 200, 24),
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        fill: false
+                    }
+                ]
+            };
+
+            // Configuration des graphiques
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            };
+
+            // Création des graphiques
+            const co2Chart = new Chart(
+                document.getElementById('co2Chart'),
+                {
+                    type: 'line',
+                    data: co2Data,
+                    options: options
+                }
+            );
+
+            const tvocChart = new Chart(
+                document.getElementById('tvocChart'),
+                {
+                    type: 'line',
+                    data: tvocData,
+                    options: options
+                }
+            );
+
+            // Gestion des boutons de sélection de salle
+            const roomButtons = document.querySelectorAll('.room-button');
+            roomButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Enlever la classe active de tous les boutons
+                    roomButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Ajouter la classe active au bouton cliqué
+                    this.classList.add('active');
+                    
+                    const room = this.getAttribute('data-room');
+                    
+                    // Mettre à jour les graphiques en fonction de la salle sélectionnée
+                    if (room === 'all') {
+                        // Afficher toutes les salles
+                        co2Chart.data.datasets.forEach(dataset => {
+                            dataset.hidden = false;
+                        });
+                        
+                        tvocChart.data.datasets.forEach(dataset => {
+                            dataset.hidden = false;
+                        });
+                    } else {
+                        // Afficher seulement la salle sélectionnée
+                        co2Chart.data.datasets.forEach((dataset, index) => {
+                            dataset.hidden = !dataset.label.toLowerCase().includes(room);
+                        });
+                        
+                        tvocChart.data.datasets.forEach((dataset, index) => {
+                            dataset.hidden = !dataset.label.toLowerCase().includes(room);
+                        });
+                    }
+                    
+                    co2Chart.update();
+                    tvocChart.update();
+                });
+            });
+        });
+
+        // Fonction pour générer des données aléatoires
+        function generateRandomData(min, max, count) {
+            return Array.from({length: count}, () => Math.floor(Math.random() * (max - min + 1)) + min);
+        }
+    </script>
+</body>
+</html>
