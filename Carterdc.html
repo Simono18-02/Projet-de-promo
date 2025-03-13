@@ -322,7 +322,15 @@ const fetchLocalData = (url) => {
                             </text>
                         </svg>
                     </div>
-                    
+    
+                React.useEffect(() => {
+                    let interval;
+                    if (selectedRoom) {
+                        fetchSensorData(selectedRoom.sensorId);
+                        interval = setInterval(() => fetchSensorData(selectedRoom.sensorId), 5000);
+                    }
+                    return () => clearInterval(interval);
+                }, [selectedRoom]);
                     {/* Fenêtre d'information sur la salle */}
                     {selectedRoom && (
                         <>
