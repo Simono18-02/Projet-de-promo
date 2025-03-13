@@ -41,6 +41,11 @@
       border-radius: 5px;
       font-size: 16px;
     }
+    .last-update {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -82,6 +87,10 @@
     <div class="chart-container">
       <canvas id="tvocChart"></canvas>
     </div>
+    
+    <div class="last-update" id="lastUpdate">
+      Dernière mise à jour: --
+    </div>
   </div>
 
   <script>
@@ -91,6 +100,8 @@
     var labels = [];
     var maxPoints = 50;
     var dataSource = "local"; // Par défaut, utiliser les données locales
+    var updateInterval; // Variable pour stocker l'intervalle
+    var lastData = null; // Pour stocker les dernières données reçues
     
     // Créer les graphiques
     var co2Chart = new Chart(document.getElementById('co2Chart'), {
@@ -107,7 +118,15 @@
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: false
+          }
+        },
+        animation: {
+          duration: 500
+        }
       }
     });
     
@@ -125,7 +144,15 @@
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: false
+          }
+        },
+        animation: {
+          duration: 500
+        }
       }
     });
     
@@ -138,11 +165,24 @@
       co2Data = [];
       tvocData = [];
       labels = [];
+      updateCharts();
+      
+      // Réinitialiser l'intervalle
+      clearInterval(updateInterval);
+      updateInterval = setInterval(getReadings, 1000);
+      
+      // Mettre à jour les données immédiatement
+      getReadings();
+    }
+    
+    // Mettre à jour les graphiques
+    function updateCharts() {
+      co2Chart.data.labels = labels;
+      co2Chart.data.datasets[0].data = co2Data;
+      tvocChart.data.labels = labels;
+      tvocChart.data.datasets[0].data = tvocData;
       co2Chart.update();
       tvocChart.update();
-      
-      // Mettre à jour les données
-      getReadings();
     }
     
     // Obtenir les données du serveur
@@ -160,27 +200,38 @@
       xhr.onreadystatechange = function() {
         if (this.readyState == 4) {
           if (this.status == 200) {
-            var data = JSON.parse(this.responseText);
-            updateDisplayWithData(data);
-            
-            // Mettre à jour le statut
-            var statusBox = document.getElementById("statusBox");
-            statusBox.className = "status online";
-            statusBox.innerHTML = "Connecté au capteur local";
+            try {
+              var data = JSON.parse(this.responseText);
+              updateDisplayWithData(data);
+              
+              // Mettre à jour le statut
+              var statusBox = document.getElementById("statusBox");
+              statusBox.className = "status online";
+              statusBox.innerHTML = "Connecté au capteur local";
+            } catch (e) {
+              console.error("Erreur de parsing JSON:", e);
+              setOfflineStatus("Erreur de format de données");
+            }
           } else {
             // Erreur de connexion
-            var statusBox = document.getElementById("statusBox");
-            statusBox.className = "status offline";
-            statusBox.innerHTML = "Capteur local non disponible";
+            setOfflineStatus("Capteur local non disponible");
           }
         }
       };
-      xhr.open("GET", "/readings", true);
+      
+      // L'URL doit être ajustée à votre environnement
+      // En local, utilisez '/readings'
+      // Pour les tests, utilisez l'URL complète de l'ESP32
+      var url = "/readings";
+      
+      // Si vous êtes en train de tester dans un navigateur qui n'est pas connecté à l'ESP32,
+      // vous pouvez temporairement commenter la ligne suivante et la remplacer par :
+      // url = "http://192.168.1.XXX/readings";  // Remplacer XXX par l'IP de votre ESP32
+      
+      xhr.open("GET", url, true);
       xhr.timeout = 5000; // 5 secondes timeout
       xhr.ontimeout = function() {
-        var statusBox = document.getElementById("statusBox");
-        statusBox.className = "status offline";
-        statusBox.innerHTML = "Capteur local non disponible (timeout)";
+        setOfflineStatus("Capteur local non disponible (timeout)");
       };
       xhr.send();
     }
@@ -191,62 +242,89 @@
       xhr.onreadystatechange = function() {
         if (this.readyState == 4) {
           if (this.status == 200) {
-            var response = JSON.parse(this.responseText);
-            
-            // Décoder le contenu en base64
-            var content = atob(response.content);
-            var data = JSON.parse(content);
-            
-            // Mettre à jour l'affichage avec les dernières données
-            if (data.reading) {
-              updateDisplayWithData(data.reading);
+            try {
+              var response = JSON.parse(this.responseText);
               
-              // Mettre à jour le statut
-              var statusBox = document.getElementById("statusBox");
-              statusBox.className = "status online";
-              statusBox.innerHTML = "Données récupérées depuis GitHub";
+              // Décoder le contenu en base64
+              var content = atob(response.content);
+              var data = JSON.parse(content);
+              
+              // Mettre à jour l'affichage avec les dernières données
+              if (data.reading) {
+                updateDisplayWithData(data.reading);
+                
+                // Mettre à jour le statut
+                var statusBox = document.getElementById("statusBox");
+                statusBox.className = "status online";
+                statusBox.innerHTML = "Données récupérées depuis GitHub";
+              }
+            } catch (e) {
+              console.error("Erreur de parsing JSON:", e);
+              setOfflineStatus("Erreur de format de données GitHub");
             }
           } else {
             // Erreur de connexion à GitHub
-            var statusBox = document.getElementById("statusBox");
-            statusBox.className = "status offline";
-            statusBox.innerHTML = "Données GitHub non disponibles";
+            setOfflineStatus("Données GitHub non disponibles");
           }
         }
       };
       
-      // Remplacer par l'URL de votre fichier JSON sur GitHub
+      // URL de votre fichier JSON sur GitHub
       var githubUrl = "https://api.github.com/repos/Simono18-02/Projet-de-promo/contents/data.json";
       xhr.open("GET", githubUrl, true);
+      xhr.timeout = 10000; // 10 secondes timeout pour GitHub
+      xhr.ontimeout = function() {
+        setOfflineStatus("GitHub non disponible (timeout)");
+      };
       xhr.send();
+    }
+    
+    // Définir le statut hors ligne
+    function setOfflineStatus(message) {
+      var statusBox = document.getElementById("statusBox");
+      statusBox.className = "status offline";
+      statusBox.innerHTML = message;
     }
     
     // Mettre à jour l'affichage avec les données
     function updateDisplayWithData(data) {
-      document.getElementById("co2").innerHTML = data.co2 + " ppm";
-      document.getElementById("tvoc").innerHTML = data.tvoc + " ppb";
-      
-      // Ajouter les données aux graphiques
-      var now = new Date().toLocaleTimeString();
-      labels.push(now);
-      co2Data.push(data.co2);
-      tvocData.push(data.tvoc);
-      
-      // Limiter le nombre de points
-      if (labels.length > maxPoints) {
-        labels.shift();
-        co2Data.shift();
-        tvocData.shift();
+      // Vérifier si les données sont différentes des dernières reçues
+      if (!lastData || data.co2 !== lastData.co2 || data.tvoc !== lastData.tvoc) {
+        // Mettre à jour les affichages
+        document.getElementById("co2").innerHTML = data.co2 + " ppm";
+        document.getElementById("tvoc").innerHTML = data.tvoc + " ppb";
+        
+        // Ajouter les données aux graphiques
+        var now = new Date();
+        var timeString = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+        labels.push(timeString);
+        co2Data.push(data.co2);
+        tvocData.push(data.tvoc);
+        
+        // Limiter le nombre de points
+        if (labels.length > maxPoints) {
+          labels.shift();
+          co2Data.shift();
+          tvocData.shift();
+        }
+        
+        // Mettre à jour les graphiques
+        updateCharts();
+        
+        // Mettre à jour l'horodatage
+        document.getElementById("lastUpdate").innerHTML = 
+          "Dernière mise à jour: " + now.toLocaleString();
+        
+        // Stocker les dernières données
+        lastData = { ...data };
       }
-      
-      // Mettre à jour les graphiques
-      co2Chart.update();
-      tvocChart.update();
     }
     
-    // Mettre à jour toutes les 5 secondes
-    setInterval(getReadings, 1000);
-    getReadings(); // Première lecture
+    // Initialiser l'intervalle de mise à jour
+    updateInterval = setInterval(getReadings, 1000);
+    
+    // Première lecture
+    getReadings();
   </script>
 </body>
 </html>
