@@ -7,7 +7,7 @@ from datetime import datetime
 
 # Récupérer l'adresse IP de l'ESP32 depuis les variables d'environnement
 ESP32_IP = os.environ.get('ESP32_IP', 'localhost')
-ESP32_URL = f"http://{ESP32_IP}/readings"
+ESP32_URL = f"http://192.168.1.37/readings"
 
 # Fichier de sortie pour les données
 OUTPUT_FILE = "data.json"
