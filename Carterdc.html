@@ -12,8 +12,7 @@
     <!-- Babel pour JSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     
-    <!-- Chart.js pour les graphiques -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -84,10 +83,7 @@
             font-weight: bold;
             color: #004080;
         }
-        .chart-container {
-            height: 200px;
-            margin-bottom: 1rem;
-        }
+       
         .navigation {
             display: flex;
             justify-content: center;
@@ -169,7 +165,6 @@
             const [selectedRoom, setSelectedRoom] = React.useState(null);
             const [sensorData, setSensorData] = React.useState(null);
             const [sensorStatus, setSensorStatus] = React.useState("loading");
-            const [charts, setCharts] = React.useState({co2: null, tvoc: null});
             
             // Définition des salles et leurs capteurs associés
             const rooms = {
@@ -217,7 +212,6 @@ const fetchGitHubData = (url) => {
                 timestamp: new Date().toLocaleString()
             });
             setSensorStatus("online");
-            setTimeout(() => { initializeCharts(); }, 100);
         })
         .catch(error => {
             console.error("Erreur GitHub:", error);
@@ -238,7 +232,6 @@ const fetchLocalData = (url) => {
                 timestamp: new Date().toLocaleString()
             });
             setSensorStatus("online");
-            setTimeout(() => { initializeCharts(); }, 100);
         })
         .catch(error => {
             console.error("Erreur locale:", error);
@@ -247,105 +240,11 @@ const fetchLocalData = (url) => {
         });
 };
             
-            // Initialiser les graphiques
-            const initializeCharts = () => {
-                if (charts.co2 || charts.tvoc) {
-                    return; // Les graphiques existent déjà
-                }
-                
-                const co2Ctx = document.getElementById('co2Chart');
-                const tvocCtx = document.getElementById('tvocChart');
-                
-                if (!co2Ctx || !tvocCtx) {
-                    return;
-                }
-                
-                // Générer des données d'exemple pour les graphiques
-                const labels = Array.from({length: 10}, (_, i) => {
-                    const date = new Date();
-                    date.setMinutes(date.getMinutes() - (10 - i));
-                    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                });
-                
-                const co2Values = [sensorData.co2];
-                const tvocValues = [sensorData.tvoc];
-                
-                // Générer des valeurs aléatoires pour l'historique
-                for (let i = 0; i < 9; i++) {
-                    co2Values.unshift(sensorData.co2 + Math.floor(Math.random() * 200 - 100));
-                    tvocValues.unshift(sensorData.tvoc + Math.floor(Math.random() * 50 - 25));
-                }
-                
-                const newCharts = {};
-                
-                newCharts.co2 = new Chart(co2Ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'CO2 (ppm)',
-                            data: co2Values,
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-                
-                newCharts.tvoc = new Chart(tvocCtx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'TVOC (ppb)',
-                            data: tvocValues,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-                
-                setCharts(newCharts);
-            };
+
             
 			
 			
-			
-			// Fonction pour mettre à jour les données et les graphiques
-			const updateData = () => {
-				if (selectedRoom) {
-					fetchSensorData(selectedRoom.sensorId);
-					
-					// Mettre à jour les graphiques si ils existent
-					if (charts.co2 && charts.tvoc && sensorData) {
-						const newTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-						
-						// Ajouter les nouvelles données aux graphiques
-						charts.co2.data.labels.push(newTime);
-						charts.co2.data.labels.shift();
-						charts.co2.data.datasets[0].data.push(sensorData.co2);
-						charts.co2.data.datasets[0].data.shift();
-						
-						charts.tvoc.data.labels.push(newTime);
-						charts.tvoc.data.labels.shift();
-						charts.tvoc.data.datasets[0].data.push(sensorData.tvoc);
-						charts.tvoc.data.datasets[0].data.shift();
-						
-						// Mise à jour des graphiques
-						charts.co2.update();
-						charts.tvoc.update();
-					}
-				}
-			};
+
 			
 			// Effet pour gérer l'actualisation automatique quand la fenêtre pop-up est ouverte
 			React.useEffect(() => {
@@ -406,14 +305,7 @@ const fetchLocalData = (url) => {
 				setSensorData(null);
 				setSensorStatus("loading");
 				
-				// Détruire les graphiques
-				if (charts.co2) {
-					charts.co2.destroy();
-				}
-				if (charts.tvoc) {
-					charts.tvoc.destroy();
-				}
-				setCharts({co2: null, tvoc: null});
+				
 			};
 
             const commonStyle = {
@@ -571,11 +463,7 @@ const fetchLocalData = (url) => {
                                             </div>
                                         </div>
                                         
-                                        <div className="chart-container">
-                                            <canvas id="co2Chart"></canvas>
-                                        </div>
-                                        <div className="chart-container">
-                                            <canvas id="tvocChart"></canvas>
+                                       
                                         </div>
                                         
                                         <div className="text-sm text-gray-600 text-center">
