@@ -1,7 +1,7 @@
 name: Update Sensor Data
 on:
   schedule:
-    - cron: '*/10 * * * *'  # Exécution toutes les 10 minutes (syntaxe corrigée)
+    - cron: '*/10 * * * *'  # Exécution toutes les 10 minutes
   workflow_dispatch:  # Permet de déclencher manuellement
 
 jobs:
@@ -9,15 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3  # Version plus récente de checkout
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Pour éviter les problèmes d'historique Git partiel
+          fetch-depth: 0
         
       - name: Setup Python
-        uses: actions/setup-python@v4  # Version plus récente
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-          cache: 'pip'  # Cache des dépendances pour accélérer le workflow
+          # Désactivation du cache pour éviter l'erreur de requirements.txt
+          # cache: 'pip'
           
       - name: Install dependencies
         run: |
